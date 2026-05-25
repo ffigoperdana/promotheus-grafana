@@ -48,11 +48,6 @@ scrape_configs:
         regex: (.+)
         target_label: alias
 
-      # drop any metrics without an alias
-      - source_labels: [alias]
-        regex: ""
-        action: drop
-
   # Node Exporter on each host
   - job_name: 'node_exporter'
     static_configs:
