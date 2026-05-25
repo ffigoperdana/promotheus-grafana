@@ -29,7 +29,7 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets:
-          - 'cadvisor:9110'
+          - 'cadvisor-nuz95vj4mlycq1225fvg6byo:9110'
         labels:
           service: 'cadvisor'
     metric_relabel_configs:
