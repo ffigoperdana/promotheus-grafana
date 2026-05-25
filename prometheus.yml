@@ -29,7 +29,7 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets:
-          - 'cadvisor-<coolify-uuid>:9109'
+          - 'cadvisor:9110'
         labels:
           service: 'cadvisor'
     metric_relabel_configs:
