@@ -1,0 +1,71 @@
+# prometheus.yml
+# ----------------
+global:
+  scrape_interval: 15s               # how often to scrape targets
+  evaluation_interval: 15s           # how often to evaluate rule expressions
+  scrape_timeout: 10s                # timeout for each scrape request
+  external_labels:                   # labels for federation/remote write
+    environment: 'production'
+    region: 'us-east-1'
+
+# Rule files for recording and alerting rules
+rule_files:
+  - 'rules/*.yml'
+
+scrape_configs:
+  # Prometheus’s own metrics
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  # Grafana internal metrics
+  - job_name: 'grafana'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['grafana:3000']
+
+  # cAdvisor on each host (captures container metrics + network‑alias as "alias")
+  - job_name: 'cadvisor'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'cadvisor-<coolify-uuid>:9109'
+        labels:
+          service: 'cadvisor'
+    metric_relabel_configs:
+      # 1) fallback: use Docker 'name' label for alias
+      - source_labels: [name]
+        regex: (.+)
+        target_label: alias
+
+      # 2) if Coolify injected serviceName, overwrite alias
+      - source_labels: [container_label_coolify_serviceName]
+        regex: (.+)
+        target_label: alias
+
+      # 3) if you’ve added your own 'alias=' Docker label, that wins
+      - source_labels: [container_label_alias]
+        regex: (.+)
+        target_label: alias
+
+      # drop any metrics without an alias
+      - source_labels: [alias]
+        regex: ""
+        action: drop
+
+  # Node Exporter on each host
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets:
+          - 'localhost:9208'
+          - '10.255.0.4:9209'
+        labels:
+          service: 'node_exporter'
+
+  # PostgreSQL exporter on each host
+  - job_name: 'postgres_exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'localhost:9187'
+          - '10.255.0.4:9187'
